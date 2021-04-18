@@ -21,6 +21,7 @@ func setupRoutes(app *fiber.App) {
 	api.Get("/users", userController.GetUsers)
 	api.Post("/regiser", userController.CreateUsers)
 	api.Post("/login", userController.LogIn)
+	api.Post("/verify", userController.VerifyUser)
 }
 
 func initDatabase() {

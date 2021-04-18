@@ -3,7 +3,7 @@ package user
 import (
 	"employee/database"
 	userModel "employee/model"
-	hashPassword "employee/utils"
+	utils "employee/utils"
 
 	"net/http"
 
@@ -27,7 +27,7 @@ func CreateUsers(c *fiber.Ctx) {
 		return
 	}
 
-	password := hashPassword.HashPassword(user.Password)
+	password := utils.HashPassword(user.Password)
 	user.Password = password
 
 	res := db.Create(&user)
@@ -36,8 +36,12 @@ func CreateUsers(c *fiber.Ctx) {
 		return
 	}
 
-	// TODO provide JWT token
-	c.Status(http.StatusOK).JSON(user)
+	token, err := utils.GenerateToken(*user)
+	if err != nil {
+		c.Status(http.StatusBadRequest).JSON(err)
+		return
+	}
+	c.Status(http.StatusOK).JSON(token)
 }
 
 func LogIn(c *fiber.Ctx) {
@@ -57,13 +61,37 @@ func LogIn(c *fiber.Ctx) {
 	var orgUser userModel.User
 	db.Where(userModel.User{Email: user.Email}).Find(&orgUser)
 
-	passwordIsValid, msg := hashPassword.VerifyPassword(user.Password, orgUser.Password)
+	passwordIsValid, msg := utils.VerifyPassword(user.Password, orgUser.Password)
 
 	if !passwordIsValid {
 		c.Status(http.StatusBadRequest).JSON(msg)
 		return
 	}
 
-	// TODO provide JWT token
-	c.Status(http.StatusOK).JSON(orgUser)
+	token, err := utils.GenerateToken(orgUser)
+	if err != nil {
+		c.Status(http.StatusBadRequest).JSON(err)
+		return
+	}
+	c.Status(http.StatusOK).JSON(token)
+}
+
+func VerifyUser(c *fiber.Ctx) {
+	type temp struct {
+		Token string
+	}
+
+	obj := new(temp)
+	if err := c.BodyParser(obj); err != nil {
+		c.Status(503).Send(err)
+		return
+	}
+
+	ubserObj, err := utils.ParseToken(obj.Token)
+
+	if err != nil {
+		c.Status(503).Send(err)
+		return
+	}
+	c.Status(http.StatusOK).JSON(ubserObj)
 }

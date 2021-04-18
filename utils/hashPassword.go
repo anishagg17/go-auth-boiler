@@ -1,4 +1,4 @@
-package hashPassword
+package utils
 
 import (
 	"log"
