@@ -1,6 +1,6 @@
 # go-auth-boiler
 
-A `Go` authentication boilerplate
+A `Go` authentication boilerplate with `jwt` and `bcrypt`.
 
 - Go version 1.16.2 darwin/amd64
 
